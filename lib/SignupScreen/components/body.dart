@@ -1,15 +1,21 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:olx_app/WelcomeScreen/welcomescreen.dart';
+import 'package:olx_app/DialogBox/errorDialog.dart';
+import 'package:olx_app/DialogBox/loadingDialog.dart';
 import 'package:olx_app/Widgets/already_have_an_account_acheck.dart';
 import 'package:olx_app/Widgets/rounded_button.dart';
 import 'package:olx_app/Widgets/rounded_input_field.dart';
 import 'package:olx_app/Widgets/rounded_password_field.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../HomeScreen.dart';
 import '../../LoginScreen/loginscreen.dart';
+import '../../globalVar.dart';
 import 'background.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebaseStorage;
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SignupBody extends StatefulWidget {
   @override
@@ -26,6 +32,7 @@ class _SignupBodyState extends State<SignupBody> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   chooseImage() async {
     final pickedFile = await picker.getImage(source: ImageSource.gallery);
@@ -34,6 +41,75 @@ class _SignupBodyState extends State<SignupBody> {
     setState(() {
       _image = file;
     });
+  }
+
+  upload() async {
+    showDialog(
+        context: context,
+        builder: (_) {
+          return const LoadingAlertDialog(message: "Please Wait.....");
+        });
+    String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+    firebaseStorage.Reference reference =
+        firebaseStorage.FirebaseStorage.instance.ref().child(fileName);
+    firebaseStorage.UploadTask uploadTask = reference.putFile(_image!);
+    firebaseStorage.TaskSnapshot storageTaskSnapshot =
+        await uploadTask.whenComplete(() {});
+    await storageTaskSnapshot.ref.getDownloadURL().then((url) {
+      userPhotoUrl = url;
+      print(userPhotoUrl);
+      _register();
+    });
+  }
+
+  void _register() async {
+    late User currentUser;
+    await _auth
+        .createUserWithEmailAndPassword(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+    )
+        .then((auth) {
+      currentUser = auth.user!;
+      userId = currentUser.uid!;
+      userEmail = currentUser.email!;
+      getUserName = _nameController.text.trim();
+      saveUserData();
+    }).catchError((error) {
+      Navigator.pop(context);
+      showDialog(
+          context: context,
+          builder: (con) {
+            return ErrorAlertDialog(
+              message: error.message.toString(),
+            );
+          });
+    });
+    //await
+    if (currentUser != null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomeScreen(),
+        ),
+      );
+    }
+  }
+
+  void saveUserData() {
+    Map<String, dynamic> userData = {
+      'userName': _nameController.text.trim(),
+      'uid': userId,
+      'userNumber': _phoneController.text.trim(),
+      'imgPro': userPhotoUrl,
+      'time': DateTime.now(),
+      'status': "approved"
+    };
+    print("*"*90);
+    print("before");
+    FirebaseFirestore.instance.collection("users").doc(userId).set(userData);
+    print("*"*90);
+    print("after");
   }
 
   @override
@@ -86,13 +162,8 @@ class _SignupBodyState extends State<SignupBody> {
               RoundedButton(
                 text: "SIGNUP",
                 press: () {
-                  print(_nameController.text);
-                  print(_emailController.text);
-                  print(_passwordController.text);
-                  _nameController.clear();
-                  _emailController.clear();
-                  _passwordController.clear();
-                },
+                  upload();
+                }
               ),
               SizedBox(
                 height: _screenHeight * 0.03,
