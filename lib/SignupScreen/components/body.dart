@@ -57,7 +57,9 @@ class _SignupBodyState extends State<SignupBody> {
         await uploadTask.whenComplete(() {});
     await storageTaskSnapshot.ref.getDownloadURL().then((url) {
       userPhotoUrl = url;
-      print(userPhotoUrl);
+      if (kDebugMode) {
+        print(userPhotoUrl);
+      }
       _register();
     });
   }
@@ -105,10 +107,10 @@ class _SignupBodyState extends State<SignupBody> {
       'time': DateTime.now(),
       'status': "approved"
     };
-    print("*"*90);
+    print("*" * 90);
     print("before");
     FirebaseFirestore.instance.collection("users").doc(userId).set(userData);
-    print("*"*90);
+    print("*" * 90);
     print("after");
   }
 
@@ -160,11 +162,10 @@ class _SignupBodyState extends State<SignupBody> {
                 },
               ),
               RoundedButton(
-                text: "SIGNUP",
-                press: () {
-                  upload();
-                }
-              ),
+                  text: "SIGNUP",
+                  press: () {
+                    upload();
+                  }),
               SizedBox(
                 height: _screenHeight * 0.03,
               ),

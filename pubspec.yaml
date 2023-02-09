@@ -61,6 +61,31 @@ dev_dependencies:
   geolocator:
   geocoding:
   url_launcher:
+  flutter_launcher_icons: "^0.9.2"
+
+flutter_icons:
+
+  ios: true
+  android: true
+  image_path: "assets/icons/logo_olx.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+#  background_color: "#6d0ad7"
+  adaptive_icon_background: "#6d0ad7"
+
+  web:
+    generate: true
+    image_path: "assets/icons/logo_olx.png"
+    background_color: "#hexcode"
+    theme_color: "#hexcode"
+  windows:
+    generate: true
+    image_path: "assets/icons/logo_olx.png"
+    icon_size: 48 # min:48, max:256, default: 48
+  macos:
+    generate: true
+    image_path: "assets/icons/logo_olx.png"
+#    image_path: "assets/icons/logo_olx.png"
+
 
 
 # For information on the generic Dart part of this file, see the
@@ -79,6 +104,7 @@ flutter:
     - assets/icons/chat.svg
     - assets/icons/login.svg
     - assets/icons/signup.svg
+    - assets/icons/logo_olx.png
     - assets/images/login_bottom.png
     - assets/images/logo.png
     - assets/images/main_bottom.png
